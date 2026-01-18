@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# macOS
+.DS_Store
+
+# Streamlit
+.streamlit/
+
+# e-Stat cache（再生成可能）
+data/cache_estat/
