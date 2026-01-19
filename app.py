@@ -21,19 +21,16 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
+    /* Global Settings */
     .stApp {
         font-family: 'Noto Sans JP', "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
         color: #333333;
-    }
-    
-    /* Global Background */
-    .stApp {
         background-color: #f8f9fc;
     }
     
     /* Header modernization */
-    h1, h2, h3 {
-        color: #1a202c;
+    h1, h2, h3, h4, h5, h6 {
+        color: #1a202c !important;
         font-weight: 700 !important;
     }
     
@@ -50,21 +47,47 @@ st.markdown("""
         transform: translateY(-2px);
     }
     div[data-testid="stMetric"] label {
-        color: #718096;
+        color: #718096 !important;
         font-size: 0.9rem;
     }
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
-        color: #2d3748;
+        color: #2d3748 !important;
         font-weight: 600;
         font-size: 1.8rem;
     }
 
-    /* Sidebar */
+    /* Sidebar Styling */
     section[data-testid="stSidebar"] {
         background-color: #ffffff;
         border-right: 1px solid #e2e8f0;
     }
     
+    /* Sidebar Text Visibility Fix - Strong Selectors */
+    section[data-testid="stSidebar"] * {
+        color: #333333 !important;
+    }
+    
+    /* Specific overrides for sidebar inputs/texts to ensure visibility */
+    section[data-testid="stSidebar"] .stMarkdown h1,
+    section[data-testid="stSidebar"] .stMarkdown h2,
+    section[data-testid="stSidebar"] .stMarkdown h3,
+    section[data-testid="stSidebar"] .stSelectbox label,
+    section[data-testid="stSidebar"] .stRadio label,
+    section[data-testid="stSidebar"] .stCheckbox label,
+    section[data-testid="stSidebar"] .stSlider label,
+    section[data-testid="stSidebar"] div[data-baseweb="select"] span,
+    section[data-testid="stSidebar"] div[data-baseweb="base-input"] input {
+        color: #333333 !important;
+    }
+
+    /* Fix for dropdown menu items (they might be in a portal outside sidebar) */
+    div[data-baseweb="popover"] ul li span {
+        color: #333333 !important; 
+    }
+    div[data-baseweb="select"] div {
+         color: #333333 !important;
+    }
+
     /* Tabs */
     .stTabs [data-baseweb="tab-list"] {
         gap: 20px;
