@@ -105,6 +105,15 @@ st.markdown("""
         border-bottom-color: var(--primary-color) !important;
         opacity: 1;
     }
+    /* Card Styling */
+    .css-card {
+        background-color: var(--secondary-background-color);
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        margin-bottom: 1rem;
+        border: 1px solid rgba(128, 128, 128, 0.1);
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -186,7 +195,11 @@ def build_sic_lists(df: pd.DataFrame):
 
 def filter_scope_base(df: pd.DataFrame, pref_code: str) -> pd.DataFrame:
     """
-    スコープ（全国/都道府県）と、市区町村のみに整形
+    データフィルタリング：
+    1. 全国(00000)除外
+    2. 人口ゼロ除外
+    3. 県全体の集計行(XX000)を除外
+    4. 政令指定都市の重複除外（「市全体」と「区」が両方ある場合、「市全体」を除外）
     """
     d = df.copy()
 
@@ -194,11 +207,30 @@ def filter_scope_base(df: pd.DataFrame, pref_code: str) -> pd.DataFrame:
     d = d[d[AREA_COL] != "00000"]
     # 人口ゼロ除外
     d = d[d["population"] > 0]
-    # 市区町村のみ（都道府県 XX000 を除外）
+    # 県集計(XX000)を除外
     d = d[~d[AREA_COL].str.endswith("000")]
 
     if pref_code != "00":
         d = d[d[AREA_COL].str.startswith(pref_code)].copy()
+
+    # ---------------------------
+    # 重複除外ロジック (Double Counting Fix)
+    # ---------------------------
+    all_codes = set(d[AREA_COL].unique())
+    remove_codes = set()
+    for code in all_codes:
+        if code.endswith("00") and not code.endswith("000"):
+            prefix = code[:3]
+            has_wards = d[
+                (d[AREA_COL].str.startswith(prefix)) & 
+                (d[AREA_COL] != code)
+            ].shape[0] > 0
+            
+            if has_wards:
+                remove_codes.add(code)
+    
+    if remove_codes:
+        d = d[~d[AREA_COL].isin(remove_codes)]
 
     return d
 
@@ -416,6 +448,7 @@ with tab1:
         format_table(rank),
         use_container_width=True,
         hide_index=True,
+        height=600  # Fixed height for single page view
     )
 
 # ======================
@@ -429,6 +462,7 @@ with tab2:
         format_table(df2),
         use_container_width=True,
         hide_index=True,
+        height=600  # Fixed height
     )
 
 # ======================
