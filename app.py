@@ -21,9 +21,8 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
-    html, body, [class*="css"] {
-        font-family: 'Noto Sans JP', sans-serif;
-        color: #333333;
+    .stApp {
+        font-family: 'Noto Sans JP', "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
     }
     
     /* Global Background */
