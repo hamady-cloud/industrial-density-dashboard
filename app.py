@@ -240,11 +240,15 @@ def apply_industry(d: pd.DataFrame, sic_code: str) -> pd.DataFrame:
     産業を適用。総計なら市区町村×年次で合算。
     """
     if sic_code == TOTAL_CODE:
+        # 人口は合算せず、代表値（max/first）をとる
+        # 従業者・事業所は合算
         out = (
-            d.groupby([AREA_COL, "areaName", "@time"], as_index=False)[
-                ["establishments", "employees", "population"]
-            ]
-            .sum(min_count=1)
+            d.groupby([AREA_COL, "areaName", "@time"], as_index=False)
+            .agg({
+                "establishments": "sum",
+                "employees": "sum",
+                "population": "max" # 同じ地域なら人口は同じはずなのでmaxでよい（sumだと産業分だけ掛け算される）
+            })
         )
         out["sicName"] = TOTAL_NAME
         out[SIC_COL] = TOTAL_CODE
@@ -281,13 +285,13 @@ def add_deviation_cols(d: pd.DataFrame, est_avg: float | None, emp_avg: float | 
 def format_table(df: pd.DataFrame):
     view = df.loc[:, DISPLAY_COLS + ["est_dev", "emp_dev"]].rename(columns=JP_RENAME).copy()
 
-    # 見出しを2段に（改行）
+    # 見出しを短縮して1行に収まりやすくする
     view = view.rename(
         columns={
-            "事業所密度（人口1万人あたり）": "事業所密度\n（人口1万人あたり）",
-            "雇用密度（人口1万人あたり）": "雇用密度\n（人口1万人あたり）",
-            "est_dev": "事業所密度\n（県平均との差）",
-            "emp_dev": "雇用密度\n（県平均との差）",
+            "事業所密度（人口1万人あたり）": "事業所密度\n(/1万人)",
+            "雇用密度（人口1万人あたり）": "雇用密度\n(/1万人)",
+            "est_dev": "事業所密度\n(県平均差)",
+            "emp_dev": "雇用密度\n(県平均差)",
         }
     )
 
@@ -301,10 +305,10 @@ def format_table(df: pd.DataFrame):
             "事業所数": "{:,.0f}",
             "従業者数": "{:,.0f}",
             "人口": "{:,.0f}",
-            "事業所密度\n（人口1万人あたり）": "{:,.0f}",
-            "雇用密度\n（人口1万人あたり）": "{:,.0f}",
-            "事業所密度\n（県平均との差）": "{:+,.0f}",
-            "雇用密度\n（県平均との差）": "{:+,.0f}",
+            "事業所密度\n(/1万人)": "{:,.0f}",
+            "雇用密度\n(/1万人)": "{:,.0f}",
+            "事業所密度\n(県平均差)": "{:+,.0f}",
+            "雇用密度\n(県平均差)": "{:+,.0f}",
         },
         na_rep="—",
     )
@@ -361,8 +365,15 @@ def make_scatter(d: pd.DataFrame, est_avg: float | None, emp_avg: float | None):
 # ======================
 # UI
 # ======================
-st.title(TITLE)
-st.caption(CAPTION)
+# タイトルを1行に収めるためのCSS調整
+st.markdown(f"""
+<h1 style='font-size: 1.8rem; margin-bottom: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;'>
+    {TITLE}
+</h1>
+<p style='color: #718096; margin-top: 0;'>{CAPTION}</p>
+""", unsafe_allow_html=True)
+# st.title(TITLE) # Removed original title
+# st.caption(CAPTION) # Removed original caption
 
 base = load_base(DATA_PATH)
 
@@ -448,7 +459,13 @@ with tab1:
         format_table(rank),
         use_container_width=True,
         hide_index=True,
-        height=600  # Fixed height for single page view
+        height=600,  # Fixed height for single page view
+        column_config={
+            "地域名": st.column_config.TextColumn(width="medium"),
+            "事業所数": st.column_config.NumberColumn(width="small"),
+            "従業者数": st.column_config.NumberColumn(width="small"),
+            "人口": st.column_config.NumberColumn(width="small"),
+        }
     )
 
 # ======================
@@ -462,7 +479,13 @@ with tab2:
         format_table(df2),
         use_container_width=True,
         hide_index=True,
-        height=600  # Fixed height
+        height=600,  # Fixed height
+        column_config={
+            "地域名": st.column_config.TextColumn(width="medium"),
+            "事業所数": st.column_config.NumberColumn(width="small"),
+            "従業者数": st.column_config.NumberColumn(width="small"),
+            "人口": st.column_config.NumberColumn(width="small"),
+        }
     )
 
 # ======================
