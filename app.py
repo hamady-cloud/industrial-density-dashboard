@@ -219,27 +219,33 @@ def filter_scope_base(df: pd.DataFrame, pref_code: str) -> pd.DataFrame:
     # 政令指定都市などは「市全体(XXXX0)」と「区(XXXX1~)」の両方が入っている場合がある。
     # 区が存在するなら市全体は除外する。
     # XXXX0 というコードだけでなく、XXXX0 のような「親」コード全般をチェック。
-    # ロジック：「末尾が0」かつ「自分を除いた前方一致（4桁）するコードが存在する」なら除外。
+    # ロジック：「末尾が0」かつ「政令指定都市のパターン（3桁目が1）」かつ「自分を除いた前方一致（4桁）するコードが存在する」なら除外。
+    # 市部（Mobara 12210 等）は3桁目が2なので除外されないようにする。
     
     all_codes = set(d[AREA_COL].unique())
     remove_codes = set()
     
     for code in all_codes:
-        # 末尾が0で、かつ県全体(000)ではない（県全体は既に除外済みだが念のため）
+        # 末尾が0で、かつ県全体(000)ではない
+        # かつ、政令指定都市（xx1xxのパターン、例14100）であること。
+        # 通常の市（xx2xx、例12210）は除外しない。
         if code.endswith("0") and not code.endswith("000"):
-            # プレフィックス (先頭4桁)
-            prefix = code[:-1] # 5桁コードの先頭4桁
+            # 3桁目が '1' かどうかチェック (index 2)
+            # コードは string, 5桁保証 (zfill済み)
+            is_designated = (len(code) == 5 and code[2] == '1')
             
-            # 同じプレフィックスを持つ他のコードが存在するか？
-            # startswith(prefix) かつ 自分自身ではない
-            # 例: code=40130(福岡市), prefix=4013. 存在するコードに 40131(東区) があればTrue
-            has_children = d[
-                (d[AREA_COL].str.startswith(prefix)) & 
-                (d[AREA_COL] != code)
-            ].shape[0] > 0
-            
-            if has_children:
-                remove_codes.add(code)
+            if is_designated:
+                # プレフィックス (先頭4桁)
+                prefix = code[:-1] 
+                
+                # 同じプレフィックスを持つ他のコードが存在するか？
+                has_children = d[
+                    (d[AREA_COL].str.startswith(prefix)) & 
+                    (d[AREA_COL] != code)
+                ].shape[0] > 0
+                
+                if has_children:
+                    remove_codes.add(code)
     
     if remove_codes:
         d = d[~d[AREA_COL].isin(remove_codes)]
@@ -427,7 +433,16 @@ d_all = apply_industry(scope_df, sic_code=sic_code)
 d = d_all[d_all["population"] >= population_min].copy()
 
 # 4) 県平均（人口加重）→ 県平均との差
-avg = compute_weighted_avg(d)
+# Calculate averages on the full dataset (d_all) for accurate Reference metrics, 
+# OR keep it based on filtered 'd'?
+# Usually, reference average should include everything (so d_all), 
+# but the current logic was using `d`.
+# BUT user wants "Total Population" to be Japan Total (126M).
+# That sum comes from `avg['pop_sum']`. 
+# So we need to calculate `avg` from `d_all` OR verify where `avg` comes from.
+# Currently: `avg = compute_weighted_avg(d)` -> d is filtered.
+# FIX: Use `d_all` for calculating the Total Population metric and averages.
+avg = compute_weighted_avg(d_all) 
 est_avg = avg["est_avg"]
 emp_avg = avg["emp_avg"]
 
