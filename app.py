@@ -506,8 +506,3 @@ with tab2:
     scatter_df = d.dropna(subset=["est_density", "emp_density", "population"])
     chart = make_scatter(scatter_df, est_avg=est_avg, emp_avg=emp_avg)
     st.altair_chart(chart, use_container_width=True)
-    st.caption("破線：県平均（人口加重平均）｜ 点サイズ：人口（人口下限後）")
-
-    scatter_df = d.dropna(subset=["est_density", "emp_density", "population"])
-    chart = make_scatter(scatter_df, est_avg=est_avg, emp_avg=emp_avg)
-    st.altair_chart(chart, use_container_width=True)
