@@ -214,19 +214,31 @@ def filter_scope_base(df: pd.DataFrame, pref_code: str) -> pd.DataFrame:
         d = d[d[AREA_COL].str.startswith(pref_code)].copy()
 
     # ---------------------------
-    # 重複除外ロジック (Double Counting Fix)
+    # 重複除外ロジック (Double Counting Fix - Strict)
     # ---------------------------
+    # 政令指定都市などは「市全体(XXXX0)」と「区(XXXX1~)」の両方が入っている場合がある。
+    # 区が存在するなら市全体は除外する。
+    # XXXX0 というコードだけでなく、XXXX0 のような「親」コード全般をチェック。
+    # ロジック：「末尾が0」かつ「自分を除いた前方一致（4桁）するコードが存在する」なら除外。
+    
     all_codes = set(d[AREA_COL].unique())
     remove_codes = set()
+    
     for code in all_codes:
-        if code.endswith("00") and not code.endswith("000"):
-            prefix = code[:3]
-            has_wards = d[
+        # 末尾が0で、かつ県全体(000)ではない（県全体は既に除外済みだが念のため）
+        if code.endswith("0") and not code.endswith("000"):
+            # プレフィックス (先頭4桁)
+            prefix = code[:-1] # 5桁コードの先頭4桁
+            
+            # 同じプレフィックスを持つ他のコードが存在するか？
+            # startswith(prefix) かつ 自分自身ではない
+            # 例: code=40130(福岡市), prefix=4013. 存在するコードに 40131(東区) があればTrue
+            has_children = d[
                 (d[AREA_COL].str.startswith(prefix)) & 
                 (d[AREA_COL] != code)
             ].shape[0] > 0
             
-            if has_wards:
+            if has_children:
                 remove_codes.add(code)
     
     if remove_codes:
@@ -247,7 +259,7 @@ def apply_industry(d: pd.DataFrame, sic_code: str) -> pd.DataFrame:
             .agg({
                 "establishments": "sum",
                 "employees": "sum",
-                "population": "max" # 同じ地域なら人口は同じはずなのでmaxでよい（sumだと産業分だけ掛け算される）
+                "population": "max" # 同じ地域なら人口は同じはずなのでmaxでよい
             })
         )
         out["sicName"] = TOTAL_NAME
@@ -285,30 +297,32 @@ def add_deviation_cols(d: pd.DataFrame, est_avg: float | None, emp_avg: float | 
 def format_table(df: pd.DataFrame):
     view = df.loc[:, DISPLAY_COLS + ["est_dev", "emp_dev"]].rename(columns=JP_RENAME).copy()
 
-    # 見出しを短縮して1行に収まりやすくする
+    # 見出しを短縮（2行で収まりよく）
     view = view.rename(
         columns={
-            "事業所密度（人口1万人あたり）": "事業所密度\n(/1万人)",
-            "雇用密度（人口1万人あたり）": "雇用密度\n(/1万人)",
-            "est_dev": "事業所密度\n(県平均差)",
-            "emp_dev": "雇用密度\n(県平均差)",
+            "事業所数": "事業所",
+            "従業者数": "従業者",
+            "事業所密度（人口1万人あたり）": "事業所\n密度",
+            "雇用密度（人口1万人あたり）": "雇用\n密度",
+            "est_dev": "事業所\n(県差)",
+            "emp_dev": "雇用\n(県差)",
         }
     )
 
-    # 念のため数値化（小数 .0 を出さない）
-    for c in ["事業所数", "従業者数", "人口"]:
+    # 念のため数値化
+    for c in ["事業所", "従業者", "人口"]:
         if c in view.columns:
             view[c] = pd.to_numeric(view[c], errors="coerce")
 
     return view.style.format(
         {
-            "事業所数": "{:,.0f}",
-            "従業者数": "{:,.0f}",
+            "事業所": "{:,.0f}",
+            "従業者": "{:,.0f}",
             "人口": "{:,.0f}",
-            "事業所密度\n(/1万人)": "{:,.0f}",
-            "雇用密度\n(/1万人)": "{:,.0f}",
-            "事業所密度\n(県平均差)": "{:+,.0f}",
-            "雇用密度\n(県平均差)": "{:+,.0f}",
+            "事業所\n密度": "{:,.0f}",
+            "雇用\n密度": "{:,.0f}",
+            "事業所\n(県差)": "{:+,.0f}",
+            "雇用\n(県差)": "{:+,.0f}",
         },
         na_rep="—",
     )
@@ -324,8 +338,8 @@ def make_scatter(d: pd.DataFrame, est_avg: float | None, emp_avg: float | None):
             alt.Tooltip("population:Q", title="人口", format=",.0f"),
             alt.Tooltip("est_density:Q", title="事業所密度", format=",.0f"),
             alt.Tooltip("emp_density:Q", title="雇用密度", format=",.0f"),
-            alt.Tooltip("est_dev:Q", title="事業所密度(県平均との差)", format="+,.0f"),
-            alt.Tooltip("emp_dev:Q", title="雇用密度(県平均との差)", format="+,.0f"),
+            alt.Tooltip("est_dev:Q", title="事業所密度(県差)", format="+,.0f"),
+            alt.Tooltip("emp_dev:Q", title="雇用密度(県差)", format="+,.0f"),
         ],
     )
 
@@ -372,8 +386,6 @@ st.markdown(f"""
 </h1>
 <p style='color: #718096; margin-top: 0;'>{CAPTION}</p>
 """, unsafe_allow_html=True)
-# st.title(TITLE) # Removed original title
-# st.caption(CAPTION) # Removed original caption
 
 base = load_base(DATA_PATH)
 
@@ -399,7 +411,8 @@ sic_code = st.sidebar.selectbox(
 metric_label = st.sidebar.radio("指標", list(METRIC_OPTIONS.keys()))
 metric_col = METRIC_OPTIONS[metric_label]
 
-use_dev_sort = st.sidebar.checkbox("ランキングを『県平均との差』で並べ替える", value=True)
+# use_dev_sort = st.sidebar.checkbox("ランキングを『県平均との差』で並べ替える", value=True)
+# ↑ 削除し、デフォルトの指標順（降順）にする
 
 population_min = st.sidebar.slider("人口下限（ノイズ抑制）", 0, 20000, 5000, step=500)
 topn = st.sidebar.slider("表示件数（ランキング）", 10, 200, 50)
@@ -435,7 +448,8 @@ with c2:
 with c3:
     st.metric("県平均 雇用密度", "—" if emp_avg is None else f"{emp_avg:,.0f}")
 
-tab1, tab2, tab3 = st.tabs(["ランキング", "市町村一覧", "散布図（県平均ライン）"])
+
+tab1, tab2 = st.tabs(["ランキング", "散布図（県平均ライン）"])
 
 # ======================
 # ① ランキング
@@ -443,11 +457,9 @@ tab1, tab2, tab3 = st.tabs(["ランキング", "市町村一覧", "散布図（�
 with tab1:
     st.subheader(f"ランキング（{scope_name}）")
 
-    sort_col = f"{metric_col[:-7]}_dev" if use_dev_sort else metric_col
-    # metric_col は est_density/emp_density、dev は est_dev/emp_dev
-    sort_col = "est_dev" if (use_dev_sort and metric_col == "est_density") else sort_col
-    sort_col = "emp_dev" if (use_dev_sort and metric_col == "emp_density") else sort_col
-
+    # デフォルトソート: 指標（密度）の降順のみ
+    sort_col = metric_col
+    
     rank = (
         d.sort_values(sort_col, ascending=False)
         .head(topn)
@@ -462,37 +474,23 @@ with tab1:
         height=600,  # Fixed height for single page view
         column_config={
             "地域名": st.column_config.TextColumn(width="medium"),
-            "事業所数": st.column_config.NumberColumn(width="small"),
-            "従業者数": st.column_config.NumberColumn(width="small"),
+            "事業所": st.column_config.NumberColumn(width="small"),
+            "従業者": st.column_config.NumberColumn(width="small"),
             "人口": st.column_config.NumberColumn(width="small"),
+            # 密度の列も一応small指定でコンパクトに
         }
     )
 
 # ======================
-# ② 一覧（全件）
+# ② 散布図（県平均ライン）
 # ======================
 with tab2:
-    st.subheader("市町村一覧（人口下限後）")
-    df2 = d.sort_values(metric_col, ascending=False).reset_index(drop=True)
-
-    st.dataframe(
-        format_table(df2),
-        use_container_width=True,
-        hide_index=True,
-        height=600,  # Fixed height
-        column_config={
-            "地域名": st.column_config.TextColumn(width="medium"),
-            "事業所数": st.column_config.NumberColumn(width="small"),
-            "従業者数": st.column_config.NumberColumn(width="small"),
-            "人口": st.column_config.NumberColumn(width="small"),
-        }
-    )
-
-# ======================
-# ③ 散布図（県平均ライン）
-# ======================
-with tab3:
     st.subheader("事業所密度 × 雇用密度（県平均ライン付き）")
+    st.caption("破線：県平均（人口加重平均）｜ 点サイズ：人口（人口下限後）")
+
+    scatter_df = d.dropna(subset=["est_density", "emp_density", "population"])
+    chart = make_scatter(scatter_df, est_avg=est_avg, emp_avg=emp_avg)
+    st.altair_chart(chart, use_container_width=True)
     st.caption("破線：県平均（人口加重平均）｜ 点サイズ：人口（人口下限後）")
 
     scatter_df = d.dropna(subset=["est_density", "emp_density", "population"])
