@@ -14,6 +14,76 @@ st.set_page_config(
 TITLE = "産業構造 × 事業所密度・雇用密度（全国比較）"
 CAPTION = "e-Stat 経済センサス × 国勢調査（人口1万人あたり指標）"
 
+# ======================
+# CSS Injection
+# ======================
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+
+    html, body, [class*="css"] {
+        font-family: 'Noto Sans JP', sans-serif;
+        color: #333333;
+    }
+    
+    /* Global Background */
+    .stApp {
+        background-color: #f8f9fc;
+    }
+    
+    /* Header modernization */
+    h1, h2, h3 {
+        color: #1a202c;
+        font-weight: 700 !important;
+    }
+    
+    /* Metric Cards */
+    div[data-testid="stMetric"] {
+        background-color: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border: 1px solid #edf2f7;
+        transition: transform 0.2s;
+    }
+    div[data-testid="stMetric"]:hover {
+        transform: translateY(-2px);
+    }
+    div[data-testid="stMetric"] label {
+        color: #718096;
+        font-size: 0.9rem;
+    }
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
+        color: #2d3748;
+        font-weight: 600;
+        font-size: 1.8rem;
+    }
+
+    /* Sidebar */
+    section[data-testid="stSidebar"] {
+        background-color: #ffffff;
+        border-right: 1px solid #e2e8f0;
+    }
+    
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 20px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        white-space: pre-wrap;
+        background-color: transparent;
+        border-radius: 4px;
+        color: #718096;
+        font-weight: 500;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #3182ce !important;
+        border-bottom-color: #3182ce !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 DATA_PATH = "data/base_2014_ec_2020_pop_level2.parquet"
 
 AREA_COL = "area"
@@ -199,20 +269,40 @@ def make_scatter(d: pd.DataFrame, est_avg: float | None, emp_avg: float | None):
         ],
     )
 
-    points = base.mark_circle(opacity=0.6)
+    points = base.mark_circle(size=80, opacity=0.7).encode(
+        color=alt.value("#3182ce"),  # Modern Blue
+        stroke=alt.value("white"),
+        strokeWidth=alt.value(1)
+    )
 
     layers = [points]
 
     # 県平均ライン（ある場合のみ）
     if est_avg is not None:
-        vline = alt.Chart(pd.DataFrame({"x": [est_avg]})).mark_rule(strokeDash=[6, 4]).encode(x="x:Q")
+        vline = alt.Chart(pd.DataFrame({"x": [est_avg]})).mark_rule(
+            strokeDash=[4, 4], 
+            color="#e53e3e",  # Red for average
+            strokeWidth=2
+        ).encode(x="x:Q")
         layers.append(vline)
 
     if emp_avg is not None:
-        hline = alt.Chart(pd.DataFrame({"y": [emp_avg]})).mark_rule(strokeDash=[6, 4]).encode(y="y:Q")
+        hline = alt.Chart(pd.DataFrame({"y": [emp_avg]})).mark_rule(
+            strokeDash=[4, 4], 
+            color="#e53e3e",
+            strokeWidth=2
+        ).encode(y="y:Q")
         layers.append(hline)
 
-    chart = alt.layer(*layers).properties(height=520).interactive()
+    chart = alt.layer(*layers).properties(height=550).configure_view(
+        strokeWidth=0
+    ).configure_axis(
+        gridColor="#edf2f7",
+        domainColor="#cbd5e0",
+        labelColor="#718096",
+        titleColor="#4a5568",
+        titleFontWeight="bold"
+    ).interactive()
     return chart
 
 
