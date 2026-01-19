@@ -24,47 +24,46 @@ st.markdown("""
     /* Global Settings */
     .stApp {
         font-family: 'Noto Sans JP', "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
-        color: #333333;
-        background-color: #f8f9fc;
     }
     
     /* Header modernization */
     h1, h2, h3, h4, h5, h6 {
-        color: #1a202c !important;
         font-weight: 700 !important;
+        color: var(--text-color) !important;
     }
     
     /* Metric Cards */
     div[data-testid="stMetric"] {
-        background-color: #ffffff;
+        background-color: var(--secondary-background-color);
         padding: 20px;
         border-radius: 12px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        border: 1px solid #edf2f7;
+        border: 1px solid var(--secondary-background-color);
         transition: transform 0.2s;
     }
     div[data-testid="stMetric"]:hover {
         transform: translateY(-2px);
     }
     div[data-testid="stMetric"] label {
-        color: #718096 !important;
+        color: var(--text-color) !important;
+        opacity: 0.8;
         font-size: 0.9rem;
     }
     div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
-        color: #2d3748 !important;
+        color: var(--text-color) !important;
         font-weight: 600;
         font-size: 1.8rem;
     }
 
     /* Sidebar Styling */
     section[data-testid="stSidebar"] {
-        background-color: #ffffff;
-        border-right: 1px solid #e2e8f0;
+        background-color: var(--secondary-background-color);
+        border-right: 1px solid var(--secondary-background-color);
     }
     
-    /* Sidebar Text Visibility Fix - Strong Selectors */
+    /* Sidebar Text - ensure it uses the main text color variable */
     section[data-testid="stSidebar"] * {
-        color: #333333 !important;
+        color: var(--text-color);
     }
     
     /* Specific overrides for sidebar inputs/texts to ensure visibility */
@@ -77,15 +76,15 @@ st.markdown("""
     section[data-testid="stSidebar"] .stSlider label,
     section[data-testid="stSidebar"] div[data-baseweb="select"] span,
     section[data-testid="stSidebar"] div[data-baseweb="base-input"] input {
-        color: #333333 !important;
+        color: var(--text-color) !important;
     }
 
-    /* Fix for dropdown menu items (they might be in a portal outside sidebar) */
+    /* Fix for dropdown menu items */
     div[data-baseweb="popover"] ul li span {
-        color: #333333 !important; 
+        color: var(--text-color) !important; 
     }
     div[data-baseweb="select"] div {
-         color: #333333 !important;
+         color: var(--text-color) !important;
     }
 
     /* Tabs */
@@ -97,12 +96,14 @@ st.markdown("""
         white-space: pre-wrap;
         background-color: transparent;
         border-radius: 4px;
-        color: #718096;
+        color: var(--text-color);
         font-weight: 500;
+        opacity: 0.7;
     }
     .stTabs [aria-selected="true"] {
-        color: #3182ce !important;
-        border-bottom-color: #3182ce !important;
+        color: var(--primary-color) !important;
+        border-bottom-color: var(--primary-color) !important;
+        opacity: 1;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -320,10 +321,6 @@ def make_scatter(d: pd.DataFrame, est_avg: float | None, emp_avg: float | None):
     chart = alt.layer(*layers).properties(height=550).configure_view(
         strokeWidth=0
     ).configure_axis(
-        gridColor="#edf2f7",
-        domainColor="#cbd5e0",
-        labelColor="#718096",
-        titleColor="#4a5568",
         titleFontWeight="bold"
     ).interactive()
     return chart
