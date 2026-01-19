@@ -23,6 +23,7 @@ st.markdown("""
 
     .stApp {
         font-family: 'Noto Sans JP', "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+        color: #333333;
     }
     
     /* Global Background */
