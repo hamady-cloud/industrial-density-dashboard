@@ -515,79 +515,74 @@ st.divider()
 
 st.markdown("""
 <div class="css-card">
-    <h2 style='margin-top: 0; color: #3182ce;'>Industrial Density Dashboard について</h2>
-    <p style='font-size: 1.1rem; color: #4a5568;'>産業構造 × 事業所密度・雇用密度（全国比較）Streamlitダッシュボード</p>
-    
-    <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;'>
-        <div>
-            <h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>1. 開発の背景（Why）</h3>
-            <p>地域の産業政策や診断では「どの産業が集積しているか」を掴む必要がありますが、実数だけでは人口規模に引きずられ、適切な比較が困難です。本ツールは人口1万人あたりの<b>「密度」</b>に着目し、規模を正規化した比較を可能にします。</p>
-        </div>
-        <div>
-            <h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>2. 意思決定への活用（So what）</h3>
-            <ul>
-                <li><b>自治体政策：</b>重点産業の選定、集積構造の把握</li>
-                <li><b>調査・コンサル：</b>初期診断・見取り図の作成</li>
-                <li><b>企業誘致：</b>産業の性格（零細型か大規模拠点型か）の判別</li>
-            </ul>
-        </div>
-    </div>
-
-    <div style='margin-top: 1.5rem;'>
-        <h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>3. 分析の視点（What）</h3>
-        <p>以下の4つの論点を通じて、地域の産業集積を可視化します。</p>
-        <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;'>
-            <div style='background: rgba(49, 130, 206, 0.05); padding: 10px; border-radius: 8px;'>
-                <b>A: 事業所の厚み</b><br>密度が高い自治体はどこか
-            </div>
-            <div style='background: rgba(49, 130, 206, 0.05); padding: 10px; border-radius: 8px;'>
-                <b>B: 雇用の厚み</b><br>雇用力が強い自治体はどこか
-            </div>
-            <div style='background: rgba(49, 130, 206, 0.05); padding: 10px; border-radius: 8px;'>
-                <b>C: 両指標のズレ</b><br>産業の性格差（零細 vs 大規模）
-            </div>
-            <div style='background: rgba(49, 130, 206, 0.05); padding: 10px; border-radius: 8px;'>
-                <b>D: 県平均との差</b><br>県内での相対的なポジション
-            </div>
-        </div>
-    </div>
-
-    <div style='margin-top: 1.5rem;'>
-        <h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>4. 主な機能（Features）</h3>
-        <ul>
-            <li><b>柔軟なフィルタ：</b>都道府県、産業大分類、人口下限（ノイズ抑制）による絞り込み</li>
-            <li><b>多角的な可視化：</b>ランキングでの詳細比較と、散布図による構造把握</li>
-            <li><b>県基準の指標：</b>人口加重平均による「県平均ライン」を自動算出</li>
-        </ul>
-    </div>
-
-    <div style='display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;'>
-        <div>
-            <h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>5. 指標の定義（Evidence）</h3>
-            <ul style='font-family: monospace; font-size: 0.9rem; list-style: none; padding-left: 0;'>
-                <li>・事業所密度 = 事業所数 / 人口 × 10,000</li>
-                <li>・雇用密度 = 従業者数 / 人口 × 10,000</li>
-                <li>・県平均 = (Σ実数 / Σ人口) × 10,000</li>
-                <li>・県差 = 自治体密度 - 県平均</li>
-            </ul>
-        </div>
-        <div>
-            <h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>6. データ仕様（Data & Logic）</h3>
-            <p style='font-size: 0.9rem;'>
-                <b>出典：</b>e-Stat 経済センサス（2014-） / 国勢調査（2020）<br>
-                <b>ロジック：</b>政令指定都市の二重計上防止（区を優先）、総計の再集計、人口ゼロ除外等のクレンジングを実施済。
-            </p>
-        </div>
-    </div>
-
-    <div style='margin-top: 1.5rem; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;'>
-        <h3 style='margin-top: 0;'>8 & 9. 分析の示唆と活用（Findings & Implications）</h3>
-        <p>このダッシュボードからは以下のヒントが得られます。</p>
-        <ul>
-            <li><b>重点産業の一次選定：</b>高密度な産業を特定し、売上や付加価値分析へ繋げる。</li>
-            <li><b>施策の出し分け：</b>「零細中心の集積」ならDX・共同化、「雇用の厚み」なら人材供給やインフラ整備など、データに基づき施策を最適化。</li>
-            <li><b>ベンチマーク：</b>散布図で似た位置にある先行自治体を特定し、政策の参照先にする。</li>
-        </ul>
-    </div>
+<h2 style='margin-top: 0; color: #3182ce;'>Industrial Density Dashboard について</h2>
+<p style='font-size: 1.1rem; color: #4a5568;'>産業構造 × 事業所密度・雇用密度（全国比較）Streamlitダッシュボード</p>
+<div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;'>
+<div>
+<h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>1. 開発の背景（Why）</h3>
+<p>地域の産業政策や診断では「どの産業が集積しているか」を掴む必要がありますが、実数だけでは人口規模に引きずられ、適切な比較が困難です。本ツールは人口1万人あたりの<b>「密度」</b>に着目し、規模を正規化した比較を可能にします。</p>
+</div>
+<div>
+<h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>2. 意思決定への活用（So what）</h3>
+<ul>
+<li><b>自治体政策：</b>重点産業の選定、集積構造の把握</li>
+<li><b>調査・コンサル：</b>初期診断・見取り図の作成</li>
+<li><b>企業誘致：</b>産業の性格（零細型か大規模拠点型か）の判別</li>
+</ul>
+</div>
+</div>
+<div style='margin-top: 1.5rem;'>
+<h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>3. 分析の視点（What）</h3>
+<p>以下の4つの論点を通じて、地域の産業集積を可視化します。</p>
+<div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;'>
+<div style='background: rgba(49, 130, 206, 0.05); padding: 10px; border-radius: 8px;'>
+<b>A: 事業所の厚み</b><br>密度が高い自治体はどこか
+</div>
+<div style='background: rgba(49, 130, 206, 0.05); padding: 10px; border-radius: 8px;'>
+<b>B: 雇用の厚み</b><br>雇用力が強い自治体はどこか
+</div>
+<div style='background: rgba(49, 130, 206, 0.05); padding: 10px; border-radius: 8px;'>
+<b>C: 両指標のズレ</b><br>産業の性格差（零細 vs 大規模）
+</div>
+<div style='background: rgba(49, 130, 206, 0.05); padding: 10px; border-radius: 8px;'>
+<b>D: 県平均との差</b><br>県内での相対的なポジション
+</div>
+</div>
+</div>
+<div style='margin-top: 1.5rem;'>
+<h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>4. 主な機能（Features）</h3>
+<ul>
+<li><b>柔軟なフィルタ：</b>都道府県、産業大分類、人口下限（ノイズ抑制）による絞り込み</li>
+<li><b>多角的な可視化：</b>ランキングでの詳細比較と、散布図による構造把握</li>
+<li><b>県基準の指標：</b>人口加重平均による「県平均ライン」を自動算出</li>
+</ul>
+</div>
+<div style='display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;'>
+<div>
+<h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>5. 指標の定義（Evidence）</h3>
+<ul style='font-family: monospace; font-size: 0.9rem; list-style: none; padding-left: 0;'>
+<li>・事業所密度 = 事業所数 / 人口 × 10,000</li>
+<li>・雇用密度 = 従業者数 / 人口 × 10,000</li>
+<li>・県平均 = (Σ実数 / Σ人口) × 10,000</li>
+<li>・県差 = 自治体密度 - 県平均</li>
+</ul>
+</div>
+<div>
+<h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>6. データ仕様（Data & Logic）</h3>
+<p style='font-size: 0.9rem;'>
+<b>出典：</b>e-Stat 経済センサス（2014-） / 国勢調査（2020）<br>
+<b>ロジック：</b>政令指定都市の二重計上防止（区を優先）、総計の再集計、人口ゼロ除外等のクレンジングを実施済。
+</p>
+</div>
+</div>
+<div style='margin-top: 1.5rem; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;'>
+<h3 style='margin-top: 0;'>8 & 9. 分析の示唆と活用（Findings & Implications）</h3>
+<p>このダッシュボードからは以下のヒントが得られます。</p>
+<ul>
+<li><b>重点産業の一次選定：</b>高密度な産業を特定し、売上や付加価値分析へ繋げる。</li>
+<li><b>施策の出し分け：</b>「零細中心の集積」ならDX・共同化、「雇用の厚み」なら人材供給やインフラ整備など、データに基づき施策を最適化。</li>
+<li><b>ベンチマーク：</b>散布図で似た位置にある先行自治体を特定し、政策の参照先にする。</li>
+</ul>
+</div>
 </div>
 """, unsafe_allow_html=True)
