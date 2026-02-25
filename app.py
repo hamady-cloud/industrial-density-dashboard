@@ -535,16 +535,16 @@ st.markdown("""
 <h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>3. 分析の視点（What）</h3>
 <p>以下の4つの論点を通じて、地域の産業集積を可視化します。</p>
 <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;'>
-<div style='background: rgba(49, 130, 206, 0.05); padding: 10px; border-radius: 8px;'>
+<div style='background: rgba(49, 130, 206, 0.1); padding: 10px; border-radius: 8px;'>
 <b>A: 事業所の厚み</b><br>密度が高い自治体はどこか
 </div>
-<div style='background: rgba(49, 130, 206, 0.05); padding: 10px; border-radius: 8px;'>
+<div style='background: rgba(49, 130, 206, 0.1); padding: 10px; border-radius: 8px;'>
 <b>B: 雇用の厚み</b><br>雇用力が強い自治体はどこか
 </div>
-<div style='background: rgba(49, 130, 206, 0.05); padding: 10px; border-radius: 8px;'>
+<div style='background: rgba(49, 130, 206, 0.1); padding: 10px; border-radius: 8px;'>
 <b>C: 両指標のズレ</b><br>産業の性格差（零細 vs 大規模）
 </div>
-<div style='background: rgba(49, 130, 206, 0.05); padding: 10px; border-radius: 8px;'>
+<div style='background: rgba(49, 130, 206, 0.1); padding: 10px; border-radius: 8px;'>
 <b>D: 県平均との差</b><br>県内での相対的なポジション
 </div>
 </div>
@@ -571,18 +571,56 @@ st.markdown("""
 <h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>6. データ仕様（Data & Logic）</h3>
 <p style='font-size: 0.9rem;'>
 <b>出典：</b>e-Stat 経済センサス（2014-） / 国勢調査（2020）<br>
-<b>ロジック：</b>政令指定都市の二重計上防止（区を優先）、総計の再集計、人口ゼロ除外等のクレンジングを実施済。
+<b>基礎処理：</b>全国行除外、人口ゼロ除外、県集計行（XX000）除外等のクレンジングを実施済。
 </p>
 </div>
 </div>
-<div style='margin-top: 1.5rem; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;'>
-<h3 style='margin-top: 0;'>8 & 9. 分析の示唆と活用（Findings & Implications）</h3>
-<p>このダッシュボードからは以下のヒントが得られます。</p>
+<div style='margin-top: 1.5rem;'>
+<h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>7. 前処理ロジック（重要な設計判断）</h3>
+<div style='background: rgba(128, 128, 128, 0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(128, 128, 128, 0.1);'>
+<p><b>7.1 集計の混入を防ぐ（ベースのフィルタ）</b><br>
+filter_scope_base() にて以下を実施し、比較対象を「市区町村の実体」に揃える。<br>
+・全国行（area == "00000"）を除外<br>
+・population > 0 のみ採用<br>
+・県集計行（XX000）を除外</p>
+<p><b>7.2 政令指定都市の二重計上対策</b><br>
+市全体（末尾0）と区（末尾1〜）が両方ある場合、市全体を除外（二重計上防止）。<br>
+条件：末尾0 かつ 3桁目が1（例：14100）で、子要素（区）が存在する場合。</p>
+<p><b>7.3 総計（全産業）の扱い</b><br>
+「全産業」選択時、自治体×年次で再集計。密度を正確に再計算し整合性を担保。</p>
+</div>
+</div>
+<div style='margin-top: 1.5rem;'>
+<h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>8. 結果（Findings：この画面で分かること）</h3>
 <ul>
-<li><b>重点産業の一次選定：</b>高密度な産業を特定し、売上や付加価値分析へ繋げる。</li>
-<li><b>施策の出し分け：</b>「零細中心の集積」ならDX・共同化、「雇用の厚み」なら人材供給やインフラ整備など、データに基づき施策を最適化。</li>
-<li><b>ベンチマーク：</b>散布図で似た位置にある先行自治体を特定し、政策の参照先にする。</li>
+<li>市区町村別に、産業ごとの<b>集積（事業所密度）</b>と<b>雇用の厚み（雇用密度）</b>を同時に比較可能。</li>
+<li>県平均（人口加重）を基準に、各自治体の<b>県内での相対ポジション（県差）</b>を説明可能。</li>
+<li>事業所密度×雇用密度の組み合わせにより「零細中心」か「大規模拠点型」かの構造差を推定。</li>
 </ul>
+</div>
+<div style='margin-top: 1.5rem;'>
+<h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>9. 示唆（Implications：打ち手案トップ3）</h3>
+<div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;'>
+<div style='background: rgba(49, 130, 206, 0.1); padding: 15px; border-radius: 10px;'>
+<b>優先度A：重点候補の仮置き</b><br>密度で当たりを付け、売上・付加価値・生産性など「稼ぐ力」指標へ接続して絞り込む。
+</div>
+<div style='background: rgba(49, 130, 206, 0.1); padding: 15px; border-radius: 10px;'>
+<b>優先度B：施策タイプの切り替え</b><br>零細中心ならDX・共同化、雇用が厚いなら人材供給・住環境など、打ち手を最適化。
+</div>
+<div style='background: rgba(49, 130, 206, 0.1); padding: 15px; border-radius: 10px;'>
+<b>優先度C：ベンチマーク</b><br>散布図で似た位置にある自治体を特定し、政策や支援スキームの参照先にする。
+</div>
+</div>
+</div>
+<div style='margin-top: 1.5rem;'>
+<h3 style='border-left: 4px solid #3182ce; padding-left: 10px;'>10. 再現性（How：セットアップ & 実行）</h3>
+<div style='background: rgba(0, 0, 0, 0.1); padding: 15px; border-radius: 12px; font-family: monospace; font-size: 0.85rem;'>
+# ディレクトリ構成<br>
+app.py / requirements.txt / data/base_2014_ec_2020_pop_level2.parquet<br><br>
+# セットアップ & 実行<br>
+pip install -r requirements.txt<br>
+streamlit run app.py
+</div>
 </div>
 </div>
 """, unsafe_allow_html=True)
